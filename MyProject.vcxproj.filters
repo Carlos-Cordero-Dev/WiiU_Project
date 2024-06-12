@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\drc-test">
+      <UniqueIdentifier>{7E8C303C-6A85-4F8E-93B7-34137F0F2F9A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{76FF3A1C-62A1-65F2-4B5C-7946379DEC42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\drc-test">
+      <UniqueIdentifier>{0B1746BF-77A2-B383-80B3-3678ECBD0F84}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\drc-test\draw.h">
+      <Filter>include\drc-test</Filter>
+    </ClInclude>
+    <ClInclude Include="include\drc-test\utils.h">
+      <Filter>include\drc-test</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\drc-test\draw.cpp">
+      <Filter>source\drc-test</Filter>
+    </ClCompile>
+    <ClCompile Include="source\drc-test\utils.cpp">
+      <Filter>source\drc-test</Filter>
+    </ClCompile>
+    <ClCompile Include="source\main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

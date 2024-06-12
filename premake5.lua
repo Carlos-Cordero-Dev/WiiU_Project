@@ -31,10 +31,14 @@ project "MyProject"
 
    -- Files to include in the project
    files {
-      "source/**.cpp",
-      "source/**.c",
-      "include/**.h",
-      "data/**"
+      "source/**/*.cpp",
+      "source/**/*.c",
+      "include/**/*.hpp",
+	  "include/**/*.h",
+	   "source/*.cpp",
+      "source/*.c",
+      "include/*.hpp",
+	  "include/*.h",
    }
 
    -- Custom build commands

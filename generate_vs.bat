@@ -1,6 +1,7 @@
+@echo off
+
 .\tools\premake5.exe vs2019
 
-@echo off
 setlocal
 
 rem Set the path to be added
