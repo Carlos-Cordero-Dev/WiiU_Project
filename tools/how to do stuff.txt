@@ -1,0 +1,4 @@
+-make to compile
+-open the .rtx from cemu to open app
+-run $ tail -f log.txt 
+	from /d/Cemu/cemu_1.26.2 to log

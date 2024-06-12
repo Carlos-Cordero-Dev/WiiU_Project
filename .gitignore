@@ -2,3 +2,9 @@
 **/.vs/
 **/Build/
 **/Debug/
+
+
+*.sln
+*.vcxproj
+*.vcxproj.bak
+*.vcxproj.user
