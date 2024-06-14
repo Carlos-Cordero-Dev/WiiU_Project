@@ -43,7 +43,8 @@ DRC_SPLASH	:=
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+# -fpermissive IS ONLY USED IF YOU ARE COMBINING .C AND .CPP FILES
+CFLAGS	:=	-g -Wall -O2 -fpermissive -ffunction-sections \
 			$(MACHDEP)
 
 CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
@@ -53,7 +54,7 @@ CXXFLAGS	:= $(CFLAGS)
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lSDL2 -lwut -lm
+LIBS	:= -lwut
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
