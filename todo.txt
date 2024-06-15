@@ -1,0 +1,6 @@
+[ ] Logging???
+
+[ ] Interface for gamepad controller
+[ ] Interface for wii controller
+[ ] Custom spinning cube
+[ ] Load 3d models

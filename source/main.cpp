@@ -11,12 +11,17 @@
 #include <whb/proc.h>
 #include <whb/sdcard.h>
 #include <whb/gfx.h>
+
 #include <whb/log.h>
+#include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 
 #include <coreinit/systeminfo.h>
 #include <coreinit/thread.h>
 #include <coreinit/time.h>
+
+#include "input.h"
+#include "logger.h"
 
 static const float sPositionData[] =
 {
@@ -43,7 +48,9 @@ int main(int argc, char **argv)
    char path[256];
    int result = 0;
 
+   WHBLogCafeInit();
    WHBLogUdpInit();
+   WHBLogPrint("Logging initialised.");
    WHBProcInit();
    WHBGfxInit();
 
@@ -100,8 +107,15 @@ int main(int argc, char **argv)
    GX2RUnlockBufferEx(&colourBuffer, 0);
 
    WHBLogPrintf("Begin rendering...");
+
+   InitWiiUGamepad();
+
    while (WHBProcIsRunning()) {
       // Animate colours...
+
+      ReadInputWiiUGamepad();
+      ReadInputWiiController();
+
       float *colours = (float *)GX2RLockBufferEx(&colourBuffer, 0);
       colours[0] = 1.0f;
       colours[1] = colours[1] >= 1.0f ? 0.0f : (colours[1] + 0.01f);
