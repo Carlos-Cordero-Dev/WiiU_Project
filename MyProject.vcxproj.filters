@@ -33,6 +33,9 @@
     <ClInclude Include="include\logger.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\mathlibs_converters.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="include\window\test_types.h">
       <Filter>include\window</Filter>
     </ClInclude>

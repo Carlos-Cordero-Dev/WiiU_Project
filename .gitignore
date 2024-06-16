@@ -9,3 +9,6 @@
 *.vcxproj.bak
 *.vcxproj.user
 *.vcxproj.filters
+*.filters
+
+GeckoLog.txt

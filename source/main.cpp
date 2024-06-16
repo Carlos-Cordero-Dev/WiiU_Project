@@ -109,12 +109,16 @@ int main(int argc, char **argv)
    WHBLogPrintf("Begin rendering...");
 
    InitWiiUGamepad();
+   InitWiiController();
 
    while (WHBProcIsRunning()) {
       // Animate colours...
 
       ReadInputWiiUGamepad();
-      //ReadInputWiiController();
+      ReadInputWiiControllers();
+
+      //PrintGamepadCompleteData();
+      PrintWiiControllerCompleteData(0);
 
       float *colours = (float *)GX2RLockBufferEx(&colourBuffer, 0);
       colours[0] = 1.0f;
