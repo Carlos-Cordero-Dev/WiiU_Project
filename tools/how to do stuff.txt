@@ -1,4 +1,5 @@
 -make to compile
 -open the .rtx from cemu to open app
--run $ tail -f log.txt 
+-Log from cemu: play from porject or run $ tail -f log.txt 
 	from /d/Cemu/cemu_1.26.2 to log
+-Log from WiiU: run wiiload.bat or if you dont use wiiload run udpDebugReader.exe on its own

@@ -50,7 +50,7 @@ void ReadInputWiiUGamepad()
 				}
 			*/
 			//write(15, 1, "Success!");
-			VORP_LOG("%s succesfull input read", controller_type.c_str());
+			VORP_LOG("%s succesfull input read %d key pressed", controller_type.c_str(), vpad.trigger);
 			return true;
 		case VPAD_READ_NO_SAMPLES:
 			VORP_LOG("%s no samples", controller_type.c_str());
