@@ -65,6 +65,11 @@ void ReadInputWiiUGamepad()
 
 }
 
+void get_gamepad()
+{
+
+}
+
 static KPADStatus kpad;
 static KPADError kError;
 

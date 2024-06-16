@@ -114,7 +114,7 @@ int main(int argc, char **argv)
       // Animate colours...
 
       ReadInputWiiUGamepad();
-      ReadInputWiiController();
+      //ReadInputWiiController();
 
       float *colours = (float *)GX2RLockBufferEx(&colourBuffer, 0);
       colours[0] = 1.0f;

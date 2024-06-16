@@ -8,6 +8,10 @@ endif
 
 TOPDIR ?= $(CURDIR)
 
+export LIBOGC_INC	:=	$(DEVKITPRO)/libogc/include
+export LIBOGC_LIB	:=	$(DEVKITPRO)/libogc/lib/wii
+export PORTLIBS		:=	$(DEVKITPRO)/portlibs/ppc
+
 #-------------------------------------------------------------------------------
 # APP_NAME sets the long name of the application
 # APP_SHORTNAME sets the short name of the application
@@ -34,7 +38,8 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source $(wildcard source/**/)
 DATA		:=	data
-INCLUDES	:=	include $(wildcard include/**/) 
+INCLUDES	:=	include $(wildcard include/**/)
+
 CONTENT		:=
 ICON		:=
 TV_SPLASH	:=
@@ -103,7 +108,8 @@ export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+			-I$(CURDIR)/$(BUILD) \
+			$(foreach dir,$(PORTLIBS),-I$(dir)/include) 
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
