@@ -19,7 +19,11 @@
 #include <coreinit/systeminfo.h>
 #include <coreinit/thread.h>
 #include <coreinit/time.h>
+#include <coreinit/dynload.h>
 
+#include <cafecompiler/CafeGLSLCompiler.h>
+
+#include "cafecompiler/shader_utils.h"
 #include "input.h"
 #include "logger.h"
 
@@ -60,18 +64,19 @@ int main(int argc, char **argv)
    }
 
    sdRootPath = WHBGetSdCardMountPath();
+   VORP_LOG("root path %s", sdRootPath);
    sprintf(path, "%s/wut/content/pos_col_shader.gsh", sdRootPath);
 
    gshFileData = WHBReadWholeFile(path, NULL);
    if (!gshFileData) {
       result = -1;
-      WHBLogPrintf("WHBReadWholeFile(%s) returned NULL", path);
+      VORP_LOG("WHBReadWholeFile(%s) returned NULL", path);
       goto exit;
    }
 
    if (!WHBGfxLoadGFDShaderGroup(&group, 0, gshFileData)) {
       result = -1;
-      WHBLogPrintf("WHBGfxLoadGFDShaderGroup returned FALSE");
+      VORP_LOG("WHBGfxLoadGFDShaderGroup returned FALSE");
       goto exit;
    }
 
@@ -79,6 +84,7 @@ int main(int argc, char **argv)
    WHBGfxInitShaderAttribute(&group, "aColour", 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
    WHBGfxInitFetchShader(&group);
 
+   //free and = null
    WHBFreeWholeFile(gshFileData);
    gshFileData = NULL;
 
@@ -106,10 +112,12 @@ int main(int argc, char **argv)
    memcpy(buffer, sColourData, colourBuffer.elemSize * colourBuffer.elemCount);
    GX2RUnlockBufferEx(&colourBuffer, 0);
 
-   WHBLogPrintf("Begin rendering...");
+   VORP_LOG("Begin rendering...");
 
    InitWiiUGamepad();
    InitWiiController();
+
+   GLSL_Init();
 
    while (WHBProcIsRunning()) {
       // Animate colours...
@@ -118,7 +126,7 @@ int main(int argc, char **argv)
       ReadInputWiiControllers();
 
       //PrintGamepadCompleteData();
-      PrintWiiControllerCompleteData(0);
+      //PrintWiiControllerCompleteData(0);
 
       float *colours = (float *)GX2RLockBufferEx(&colourBuffer, 0);
       colours[0] = 1.0f;

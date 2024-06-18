@@ -1,0 +1,5 @@
+-copied CafeGLSLCompiler.h from https://github.com/Exzap/CafeGLSL cafecompiler/ into this folder
+-at the same level where cemu.exe is create folder named cafeLibs/ and copy glslcompiler.rpl into it (gotten from https://github.com/Exzap/CafeGLSL/releases/tag/v0.1.1)
+-didnt compile bc OSDynLoad_FindExport(s_glslCompilerModule, OS_DYNLOAD_EXPORT_FUNC, "DestroyGLSLCompiler", (void**)&__GLSL_DestroyGLSLCompiler);
+didnt find OS_DYNLOAD_EXPORT_FUNC,  (which is an enum at #include <coreinit/dynload.h>) for some reason. Still dont know why
+but changing OS_DYNLOAD_EXPORT_FUNC,  to "0" which is the value the enum represented made it work.

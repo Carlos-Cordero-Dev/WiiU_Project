@@ -4,6 +4,9 @@
     <Filter Include="include">
       <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\cafecompiler">
+      <UniqueIdentifier>{E2F31681-CE82-A04A-77A1-B445630FB1F0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\drc-test">
       <UniqueIdentifier>{7E8C303C-6A85-4F8E-93B7-34137F0F2F9A}</UniqueIdentifier>
     </Filter>
@@ -21,6 +24,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\cafecompiler\CafeGLSLCompiler.h">
+      <Filter>include\cafecompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cafecompiler\shader_utils.h">
+      <Filter>include\cafecompiler</Filter>
+    </ClInclude>
     <ClInclude Include="include\drc-test\draw.h">
       <Filter>include\drc-test</Filter>
     </ClInclude>

@@ -4,6 +4,7 @@
 
 /*
 TODO:
+-Uninitialize functions calls / destructors
 -check current controll system
 */
 
