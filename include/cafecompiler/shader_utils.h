@@ -10,6 +10,14 @@
 #include <span>
 #include <memory>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <cassert>
+#include <cstdlib>
+
+
 #include <whb/gfx.h>
 #include <gx2/draw.h>
 #include <gx2r/buffer.h>
@@ -21,7 +29,7 @@
 
 
 // shader utilities
-static std::string LoadShaderFromFile(const std::string& filepath) {
+std::string LoadShaderFromFile(const std::string& filepath) {
     std::ifstream shaderFile(filepath);
     std::stringstream shaderStream;
 
@@ -50,3 +58,5 @@ WHBGfxShaderGroup* GLSL_CompileShader(const char* vsSrc, const char* psSrc)
     shaderGroup->pixelShader = ps;
     return shaderGroup;
 }
+
+

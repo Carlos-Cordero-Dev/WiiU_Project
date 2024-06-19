@@ -21,6 +21,8 @@
 #include <coreinit/time.h>
 #include <coreinit/dynload.h>
 
+#include <string>
+
 #include <cafecompiler/CafeGLSLCompiler.h>
 
 #include "cafecompiler/shader_utils.h"
@@ -41,8 +43,20 @@ static const float sColourData[] =
    0.0f,  0.0f,  1.0f, 1.0f,
 };
 
+void Shutdown(GX2RBuffer* positionBuffer, GX2RBuffer* colorBuff)
+{
+    WHBLogPrintf("Exiting...");
+    GX2RDestroyBufferEx(positionBuffer, 0);
+    GX2RDestroyBufferEx(colorBuff, 0);
+    WHBUnmountSdCard();
+    WHBGfxShutdown();
+    WHBProcShutdown();
+    WHBLogUdpDeinit();
+}
+
 int main(int argc, char **argv)
 {
+
    GX2RBuffer positionBuffer = { 0 };
    GX2RBuffer colourBuffer = { 0 };
    WHBGfxShaderGroup group = { 0 };
@@ -50,7 +64,6 @@ int main(int argc, char **argv)
    char *gshFileData = NULL;
    char *sdRootPath = NULL;
    char path[256];
-   int result = 0;
 
    WHBLogCafeInit();
    WHBLogUdpInit();
@@ -59,40 +72,111 @@ int main(int argc, char **argv)
    WHBGfxInit();
 
    if (!WHBMountSdCard()) {
-      result = -1;
-      goto exit;
+       Shutdown(&positionBuffer, &colourBuffer);
+       return -1;
    }
 
    sdRootPath = WHBGetSdCardMountPath();
+#if 0
+   sdRootPath = "../sdcard";
+#endif // 1
    VORP_LOG("root path %s", sdRootPath);
-   sprintf(path, "%s/wut/content/pos_col_shader.gsh", sdRootPath);
 
-   gshFileData = WHBReadWholeFile(path, NULL);
-   if (!gshFileData) {
-      result = -1;
-      VORP_LOG("WHBReadWholeFile(%s) returned NULL", path);
-      goto exit;
+   //gshFileData = WHBReadWholeFile(path, NULL);
+   //if (!gshFileData) {
+   //   VORP_LOG("WHBReadWholeFile(%s) returned NULL", path);
+   //   Shutdown(&positionBuffer, &colourBuffer);
+   //   return -1;
+   //}
+
+   //if (!WHBGfxLoadGFDShaderGroup(&group, 0, gshFileData)) {
+
+   //   VORP_LOG("WHBGfxLoadGFDShaderGroup returned FALSE");
+   //   Shutdown(&positionBuffer, &colourBuffer);
+   //   return -1;
+   //}
+
+   GLSL_Init();
+
+   char path_vs[256];
+   char path_fs[256];
+
+   sprintf(path_vs, "%s/wut/content/test.vs.glsl", sdRootPath);
+   sprintf(path_fs, "%s/wut/content/test.fs.glsl", sdRootPath);
+
+   VORP_LOG("path_vs %s", path_vs);
+   VORP_LOG("path_fs %s", path_fs);
+
+
+   std::string path_vs_s(path_vs);
+   std::string path_fs_s(path_fs);
+
+   //std::string s_vertexShader = LoadShaderFromFile(path_vs_s);
+   //std::string s_fragmentShader = LoadShaderFromFile(path_vs_s);
+   //VORP_LOG("VS: %s", s_vertexShader.c_str());
+   //VORP_LOG("\nFS: %s", s_fragmentShader.c_str());
+
+
+       constexpr const char* s_vertexShader = R"(
+    #version 400 core
+
+    layout(location = 0) in vec4 aColor;
+    layout(location = 1) in vec4 aPosition;
+
+    out vec4 vColor;
+
+    void main()
+    {
+        gl_Position = vec4(aPosition);
+        vColor = aColor;
+    }
+    )";
+
+       constexpr const char* s_fragmentShader = R"(
+    #version 400 core
+
+    in vec4 vColor;
+    out vec4 FragColor;
+
+    void main()
+    {
+        FragColor = vColor;
+    }
+    )";
+
+
+
+   std::string errorLog(1024, '\0');
+   GX2VertexShader* vertexShader = GLSL_CompileVertexShader(s_vertexShader, errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
+   if (!vertexShader) {
+       VORP_LOG("Vertex shader compilation failed for triangle example: %s", errorLog.data());
+       return;
+   }
+   GX2PixelShader* pixelShader = GLSL_CompilePixelShader(s_fragmentShader, errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
+   if (!pixelShader) {
+       VORP_LOG("Pixel shader compilation failed for triangle example: %s", errorLog.data());
+       return;
    }
 
-   if (!WHBGfxLoadGFDShaderGroup(&group, 0, gshFileData)) {
-      result = -1;
-      VORP_LOG("WHBGfxLoadGFDShaderGroup returned FALSE");
-      goto exit;
-   }
+   group.vertexShader = vertexShader;
+   group.pixelShader = pixelShader;
+
+   GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, group.vertexShader->program, group.vertexShader->size);
+   GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, group.pixelShader->program, group.pixelShader->size);
 
    WHBGfxInitShaderAttribute(&group, "aPosition", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-   WHBGfxInitShaderAttribute(&group, "aColour", 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+   WHBGfxInitShaderAttribute(&group, "aColor", 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
    WHBGfxInitFetchShader(&group);
 
    //free and = null
-   WHBFreeWholeFile(gshFileData);
-   gshFileData = NULL;
+   //WHBFreeWholeFile(gshFileData);
+   //gshFileData = NULL;
 
    // Set vertex position
    positionBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER |
-                          GX2R_RESOURCE_USAGE_CPU_READ |
-                          GX2R_RESOURCE_USAGE_CPU_WRITE |
-                          GX2R_RESOURCE_USAGE_GPU_READ;
+       GX2R_RESOURCE_USAGE_CPU_READ |
+       GX2R_RESOURCE_USAGE_CPU_WRITE |
+       GX2R_RESOURCE_USAGE_GPU_READ;
    positionBuffer.elemSize = 4 * 4;
    positionBuffer.elemCount = 3;
    GX2RCreateBuffer(&positionBuffer);
@@ -102,9 +186,9 @@ int main(int argc, char **argv)
 
    // Set vertex colour
    colourBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER |
-                        GX2R_RESOURCE_USAGE_CPU_READ |
-                        GX2R_RESOURCE_USAGE_CPU_WRITE |
-                        GX2R_RESOURCE_USAGE_GPU_READ;
+       GX2R_RESOURCE_USAGE_CPU_READ |
+       GX2R_RESOURCE_USAGE_CPU_WRITE |
+       GX2R_RESOURCE_USAGE_GPU_READ;
    colourBuffer.elemSize = 4 * 4;
    colourBuffer.elemCount = 3;
    GX2RCreateBuffer(&colourBuffer);
@@ -117,7 +201,6 @@ int main(int argc, char **argv)
    InitWiiUGamepad();
    InitWiiController();
 
-   GLSL_Init();
 
    while (WHBProcIsRunning()) {
       // Animate colours...
@@ -171,13 +254,7 @@ int main(int argc, char **argv)
       WHBGfxFinishRender();
    }
 
-exit:
-   WHBLogPrintf("Exiting...");
-   GX2RDestroyBufferEx(&positionBuffer, 0);
-   GX2RDestroyBufferEx(&colourBuffer, 0);
-   WHBUnmountSdCard();
-   WHBGfxShutdown();
-   WHBProcShutdown();
-   WHBLogUdpDeinit();
-   return result;
+   Shutdown(&positionBuffer, &colourBuffer);
+   return 0;
 }
+
