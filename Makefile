@@ -39,6 +39,7 @@ BUILD		:=	build
 SOURCES		:=	source $(wildcard source/**/)
 DATA		:=	data
 INCLUDES	:=	include $(wildcard include/**/)
+ROMFS 		:=  romfs
 
 CONTENT		:=
 ICON		:=
@@ -158,6 +159,15 @@ clean:
 #-------------------------------------------------------------------------------
 else
 .PHONY:	all
+
+#-------------------------------------------------------------------------------
+# romfs
+#-------------------------------------------------------------------------------
+include $(PORTLIBS_PATH)/wiiu/share/romfs-wiiu.mk
+CFLAGS		+=	$(ROMFS_CFLAGS)
+CXXFLAGS	+=	$(ROMFS_CFLAGS)
+LIBS		+=	$(ROMFS_LIBS)
+OFILES		+=	$(ROMFS_TARGET)
 
 DEPENDS	:=	$(OFILES:.o=.d)
 

@@ -15,6 +15,7 @@
 #include <whb/log.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
+#include <whb/log_console.h>
 
 #include <coreinit/systeminfo.h>
 #include <coreinit/thread.h>
@@ -23,6 +24,7 @@
 
 #include <string>
 
+#include <romfs-wiiu.h>
 #include <cafecompiler/CafeGLSLCompiler.h>
 
 #include "cafecompiler/shader_utils.h"
@@ -52,6 +54,8 @@ void Shutdown(GX2RBuffer* positionBuffer, GX2RBuffer* colorBuff)
     WHBGfxShutdown();
     WHBProcShutdown();
     WHBLogUdpDeinit();
+
+    romfsExit();
 }
 
 int main(int argc, char **argv)
@@ -101,58 +105,42 @@ int main(int argc, char **argv)
    char path_vs[256];
    char path_fs[256];
 
-   sprintf(path_vs, "%s/wut/content/test.vs.glsl", sdRootPath);
-   sprintf(path_fs, "%s/wut/content/test.fs.glsl", sdRootPath);
+
+   int res = romfsInit();
+   VORP_LOG("Romfs res %d", res);
+
+   sprintf(path_vs, "romfs:/test.vs.glsl");
+   sprintf(path_fs, "romfs:/test.fs.glsl");
 
    VORP_LOG("path_vs %s", path_vs);
    VORP_LOG("path_fs %s", path_fs);
 
-
    std::string path_vs_s(path_vs);
    std::string path_fs_s(path_fs);
 
-   //std::string s_vertexShader = LoadShaderFromFile(path_vs_s);
-   //std::string s_fragmentShader = LoadShaderFromFile(path_vs_s);
-   //VORP_LOG("VS: %s", s_vertexShader.c_str());
-   //VORP_LOG("\nFS: %s", s_fragmentShader.c_str());
+   std::string s_vertexShader = LoadShaderFromFile(path_vs_s);
+   std::string s_fragmentShader = LoadShaderFromFile(path_fs_s);
+   VORP_LOG("VS: %s", s_vertexShader.c_str());
+   VORP_LOG("\nFS: %s", s_fragmentShader.c_str());
 
-
-       constexpr const char* s_vertexShader = R"(
-    #version 400 core
-
-    layout(location = 0) in vec4 aColor;
-    layout(location = 1) in vec4 aPosition;
-
-    out vec4 vColor;
-
-    void main()
-    {
-        gl_Position = vec4(aPosition);
-        vColor = aColor;
+    if (WHBLogConsoleInit()) {
+        VORP_LOG("I'm on the WiiU");
+        WHBLogConsoleFree();
     }
-    )";
-
-       constexpr const char* s_fragmentShader = R"(
-    #version 400 core
-
-    in vec4 vColor;
-    out vec4 FragColor;
-
-    void main()
-    {
-        FragColor = vColor;
+    else {
+        VORP_LOG("I'm on CEMU or another environment");
     }
-    )";
+
 
 
 
    std::string errorLog(1024, '\0');
-   GX2VertexShader* vertexShader = GLSL_CompileVertexShader(s_vertexShader, errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
+   GX2VertexShader* vertexShader = GLSL_CompileVertexShader(s_vertexShader.c_str(), errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
    if (!vertexShader) {
        VORP_LOG("Vertex shader compilation failed for triangle example: %s", errorLog.data());
        return;
    }
-   GX2PixelShader* pixelShader = GLSL_CompilePixelShader(s_fragmentShader, errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
+   GX2PixelShader* pixelShader = GLSL_CompilePixelShader(s_fragmentShader.c_str(), errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
    if (!pixelShader) {
        VORP_LOG("Pixel shader compilation failed for triangle example: %s", errorLog.data());
        return;
