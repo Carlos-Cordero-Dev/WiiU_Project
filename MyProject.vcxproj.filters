@@ -51,6 +51,9 @@
     <ClInclude Include="include\window\window.h">
       <Filter>include\window</Filter>
     </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\drc-test\draw.cpp">

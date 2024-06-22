@@ -120,31 +120,35 @@ int main(int argc, char **argv)
 
    std::string s_vertexShader = LoadShaderFromFile(path_vs_s);
    std::string s_fragmentShader = LoadShaderFromFile(path_fs_s);
+
    VORP_LOG("VS: %s", s_vertexShader.c_str());
    VORP_LOG("\nFS: %s", s_fragmentShader.c_str());
 
-    if (WHBLogConsoleInit()) {
-        VORP_LOG("I'm on the WiiU");
-        WHBLogConsoleFree();
-    }
-    else {
-        VORP_LOG("I'm on CEMU or another environment");
-    }
+    //if (WHBLogConsoleInit()) {
+    //    VORP_LOG("I'm on the WiiU");
+    //    WHBLogConsoleFree();
+    //}
+    //else {
+    //    VORP_LOG("I'm on CEMU or another environment");
+    //}
 
-
+   VORP_LOG("Before shader comp");
 
 
    std::string errorLog(1024, '\0');
    GX2VertexShader* vertexShader = GLSL_CompileVertexShader(s_vertexShader.c_str(), errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
    if (!vertexShader) {
        VORP_LOG("Vertex shader compilation failed for triangle example: %s", errorLog.data());
-       return;
+       Shutdown(&positionBuffer, &colourBuffer);
+       return -1;
    }
    GX2PixelShader* pixelShader = GLSL_CompilePixelShader(s_fragmentShader.c_str(), errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
    if (!pixelShader) {
        VORP_LOG("Pixel shader compilation failed for triangle example: %s", errorLog.data());
-       return;
+       Shutdown(&positionBuffer, &colourBuffer);
+       return -1;
    }
+   VORP_LOG("After shader comp");
 
    group.vertexShader = vertexShader;
    group.pixelShader = pixelShader;
@@ -195,6 +199,9 @@ int main(int argc, char **argv)
 
       ReadInputWiiUGamepad();
       ReadInputWiiControllers();
+
+      //VORP_LOG("Tick %d", OSGetSystemTick());
+
 
       //PrintGamepadCompleteData();
       //PrintWiiControllerCompleteData(0);
