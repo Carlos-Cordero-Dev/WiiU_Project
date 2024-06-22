@@ -10,6 +10,9 @@
     <Filter Include="include\drc-test">
       <UniqueIdentifier>{7E8C303C-6A85-4F8E-93B7-34137F0F2F9A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\tinyobjloader">
+      <UniqueIdentifier>{8EA63973-FA12-F56D-C306-8DCB2F3217D6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\window">
       <UniqueIdentifier>{70DC6774-5CAA-5B7A-453E-CCA031AB37DF}</UniqueIdentifier>
     </Filter>
@@ -39,20 +42,29 @@
     <ClInclude Include="include\input.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\jobs.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="include\logger.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\mathlibs_converters.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\model.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\timer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tinyobjloader\tiny_obj_loader.h">
+      <Filter>include\tinyobjloader</Filter>
+    </ClInclude>
     <ClInclude Include="include\window\test_types.h">
       <Filter>include\window</Filter>
     </ClInclude>
     <ClInclude Include="include\window\window.h">
       <Filter>include\window</Filter>
-    </ClInclude>
-    <ClInclude Include="timer.h">
-      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="source\drc-test\utils.cpp">
       <Filter>source\drc-test</Filter>
+    </ClCompile>
+    <ClCompile Include="source\jobs.cpp">
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="source\main.cpp">
       <Filter>source</Filter>

@@ -23,6 +23,7 @@
 #include <coreinit/dynload.h>
 
 #include <string>
+#include <memory>
 
 #include <romfs-wiiu.h>
 #include <cafecompiler/CafeGLSLCompiler.h>
@@ -30,6 +31,9 @@
 #include "cafecompiler/shader_utils.h"
 #include "input.h"
 #include "logger.h"
+#include "model.h"
+#include "jobs.h"
+#include "timer.h"
 
 static const float sPositionData[] =
 {
@@ -75,6 +79,9 @@ int main(int argc, char **argv)
    WHBProcInit();
    WHBGfxInit();
 
+   std::unique_ptr<JobsManager> jb = std::make_unique<JobsManager>();
+
+
    if (!WHBMountSdCard()) {
        Shutdown(&positionBuffer, &colourBuffer);
        return -1;
@@ -101,6 +108,7 @@ int main(int argc, char **argv)
    //}
 
    GLSL_Init();
+   LoadMYFOBJ();
 
    char path_vs[256];
    char path_fs[256];
@@ -124,6 +132,7 @@ int main(int argc, char **argv)
    VORP_LOG("VS: %s", s_vertexShader.c_str());
    VORP_LOG("\nFS: %s", s_fragmentShader.c_str());
 
+    //always says cemu idk why
     //if (WHBLogConsoleInit()) {
     //    VORP_LOG("I'm on the WiiU");
     //    WHBLogConsoleFree();
@@ -131,9 +140,6 @@ int main(int argc, char **argv)
     //else {
     //    VORP_LOG("I'm on CEMU or another environment");
     //}
-
-   VORP_LOG("Before shader comp");
-
 
    std::string errorLog(1024, '\0');
    GX2VertexShader* vertexShader = GLSL_CompileVertexShader(s_vertexShader.c_str(), errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
@@ -148,7 +154,8 @@ int main(int argc, char **argv)
        Shutdown(&positionBuffer, &colourBuffer);
        return -1;
    }
-   VORP_LOG("After shader comp");
+
+   VORP_LOG("Shaders compiled");
 
    group.vertexShader = vertexShader;
    group.pixelShader = pixelShader;
@@ -193,6 +200,7 @@ int main(int argc, char **argv)
    InitWiiUGamepad();
    InitWiiController();
 
+   TimerReset();
 
    while (WHBProcIsRunning()) {
       // Animate colours...
@@ -200,7 +208,9 @@ int main(int argc, char **argv)
       ReadInputWiiUGamepad();
       ReadInputWiiControllers();
 
-      //VORP_LOG("Tick %d", OSGetSystemTick());
+      TimerUpdate();
+      //VORP_LOG("gametime %d", gameTime_);
+      //VORP_LOG("deltatime %f", (float)GetDeltaTime());
 
 
       //PrintGamepadCompleteData();

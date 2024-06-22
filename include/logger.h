@@ -1,4 +1,6 @@
-#pragma once
+
+#ifndef LOGGER_H_
+#define LOGGER_H_ 1
 
 #include <cstdio>
 #include <cstdarg>
@@ -16,3 +18,5 @@ void vorp_log(const char* fmt, ...) {
     va_end(args);
     WHBLogPrintf("%s", buffer);
 }
+
+#endif // !LOGGER_H_
