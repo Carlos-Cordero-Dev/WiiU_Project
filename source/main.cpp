@@ -78,6 +78,7 @@ int main(int argc, char **argv)
    WHBLogPrint("Logging initialised.");
    WHBProcInit();
    WHBGfxInit();
+   romfsInit();
 
    std::unique_ptr<JobsManager> jb = std::make_unique<JobsManager>();
 
@@ -107,9 +108,10 @@ int main(int argc, char **argv)
    //   return -1;
    //}
 
-   GLSL_Init();
-   LoadMYFOBJ();
+   std::shared_ptr<ObjInfo> cube = LoadObjFromFile("romfs:/models/primitives/cube.obj");
 
+   GLSL_Init();
+   
    char path_vs[256];
    char path_fs[256];
 
@@ -200,7 +202,8 @@ int main(int argc, char **argv)
    InitWiiUGamepad();
    InitWiiController();
 
-   TimerReset();
+   //TimerReset();
+   //StartLOVETimer();
 
    while (WHBProcIsRunning()) {
       // Animate colours...
@@ -208,9 +211,8 @@ int main(int argc, char **argv)
       ReadInputWiiUGamepad();
       ReadInputWiiControllers();
 
-      TimerUpdate();
-      //VORP_LOG("gametime %d", gameTime_);
-      //VORP_LOG("deltatime %f", (float)GetDeltaTime());
+      //LOVETimerStep();
+      //VORP_LOG("gametime %f", (float)getLOVETime());
 
 
       //PrintGamepadCompleteData();
