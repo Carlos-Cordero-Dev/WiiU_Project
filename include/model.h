@@ -6,6 +6,14 @@
 #include "tinyobjloader/tiny_obj_loader.h"
 
 
+struct Mesh
+{
+    std::vector<unsigned int> indices;
+    std::vector<float> vertexData;
+    //std::shared_ptr<Vorpal::Material> material = nullptr;
+    std::string name;
+};
+
 struct ObjInfo
 {
     tinyobj::attrib_t attrib;
@@ -72,4 +80,10 @@ std::shared_ptr<ObjInfo> LoadObjFromFile(const std::string& inputfile)
         }
     }
     return objInfo;
+}
+
+void UploadModel()
+{
+
+
 }

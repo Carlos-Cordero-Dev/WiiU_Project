@@ -35,19 +35,6 @@
 #include "jobs.h"
 #include "timer.h"
 
-static const float sPositionData[] =
-{
-    1.0f, -1.0f,  0.0f, 1.0f,
-    0.0f,  1.0f,  0.0f, 1.0f,
-   -1.0f, -1.0f,  1.0f, 1.0f,
-};
-
-static const float sColourData[] =
-{
-   1.0f,  0.0f,  0.0f, 1.0f,
-   0.0f,  1.0f,  0.0f, 1.0f,
-   0.0f,  0.0f,  1.0f, 1.0f,
-};
 
 void Shutdown(GX2RBuffer* positionBuffer, GX2RBuffer* colorBuff)
 {
@@ -58,7 +45,7 @@ void Shutdown(GX2RBuffer* positionBuffer, GX2RBuffer* colorBuff)
     WHBGfxShutdown();
     WHBProcShutdown();
     WHBLogUdpDeinit();
-
+    GLSL_Shutdown();
     romfsExit();
 }
 
@@ -173,6 +160,20 @@ int main(int argc, char **argv)
    //WHBFreeWholeFile(gshFileData);
    //gshFileData = NULL;
 
+   const float sPositionData[] =
+   {
+       1.0f, -1.0f,  0.0f, 1.0f,
+       0.0f,  1.0f,  0.0f, 1.0f,
+      -1.0f, -1.0f,  1.0f, 1.0f,
+   };
+
+   const float sColourData[] =
+   {
+      1.0f,  0.0f,  0.0f, 1.0f,
+      0.0f,  1.0f,  0.0f, 1.0f,
+      0.0f,  0.0f,  1.0f, 1.0f,
+   };
+
    // Set vertex position
    positionBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER |
        GX2R_RESOURCE_USAGE_CPU_READ |
@@ -202,8 +203,7 @@ int main(int argc, char **argv)
    InitWiiUGamepad();
    InitWiiController();
 
-   //TimerReset();
-   //StartLOVETimer();
+   Timer timer = Timer();
 
    while (WHBProcIsRunning()) {
       // Animate colours...
@@ -211,8 +211,8 @@ int main(int argc, char **argv)
       ReadInputWiiUGamepad();
       ReadInputWiiControllers();
 
-      //LOVETimerStep();
-      //VORP_LOG("gametime %f", (float)getLOVETime());
+      timer.step();
+      VORP_LOG("gametime %f fps %d deltatime %f",(float)(timer.get_time()), (int)timer.fps, (float)timer.deltaTime);
 
 
       //PrintGamepadCompleteData();

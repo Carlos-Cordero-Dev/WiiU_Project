@@ -2,95 +2,72 @@
 #ifndef TIMER_H_
 #define TIMER_H_ 1
  
-#include <coreinit/time.h>
 #include <chrono>
+#include <thread>
 
-int deltaTime_;
-int gameTime_;
+//https://github.com/lovebrew/lovepotion/blob/dev/graphics/platform/cafe/source/modules/timer/Timer.cpp adapted to stdlib
 
-int gameStart_;
-int gameFrameBegin_;
-int gameFrameEnd_;
-int gameFrameMark_;
+using Clock = std::chrono::high_resolution_clock;
+using TimePoint = std::chrono::time_point<Clock>;
+using Duration = std::chrono::duration<double>;
+using Nanoseconds = std::chrono::duration<double, std::nano>;
+constexpr double SECONDS_TO_NS = 1.0E9;
 
-int inline getTicksInMS()
+class Timer
 {
-	return OSTicksToMilliseconds(OSGetTick());
-}
+public:
+    Timer();
 
-//TODO Tener en cuenta la pausa
-double GetGameTime()
+    double get_time();
+    void sleep(double seconds);
+    //returns deltatime in sec
+    double step();
+
+public:
+    TimePoint reference;
+    int frames = 0;
+    double prevTime = 0.0;
+    double currTime = 0.0;
+    double deltaTime = 0.0;
+    double prevFpsUpdate = 0.0;
+    double fpsUpdateFrequencyInSec = 1.0;
+    double averageDelta = 0.0;
+    int fps = 0;
+};
+
+Timer::Timer()
 {
-	return (double)gameTime_;
-}
-
-double GetDeltaTime()
-{
-	return (double)deltaTime_;
-}
-
-void TimerReset()
-{
-	gameStart_ = getTicksInMS();
-	gameFrameBegin_ = gameStart_;
-}
-
-void TimerUpdate()
-{
-	int currentTime = getTicksInMS();
-	gameTime_ = currentTime - gameStart_;
-	deltaTime_ = currentTime - gameFrameBegin_;
-	gameFrameBegin_ = currentTime;
-}
-
-//=== LOVE INPLEMENTATION =====
-
-//https://github.com/lovebrew/lovepotion/blob/dev/graphics/platform/cafe/source/modules/timer/Timer.cpp
-
-static OSTick reference = 0;
-static constexpr double SECONDS_TO_NS = 1.0E9;
-static int frames = 0;
-static double prevTime = 0.0;
-static double currTime = 0.0;
-static double deltaTime = 0.0;
-static double prevFpsUpdate = 0.0;
-static double fpsUpdateFrequency = 1.0;
-static double averageDelta = 0.0;
-static int fps = 0;
-
-double getLOVETime()
-{
-    const auto ns = OSTicksToNanoseconds(OSGetTick() - reference);
-    return ns / SECONDS_TO_NS;
-}
-
-StartLOVETimer()
-{
-    reference = OSGetTick();
-    currTime = getLOVETime();
+    reference = Clock::now();
+    currTime = get_time();
     prevFpsUpdate = currTime;
 }
 
-void LOVETimersleep(double seconds)
+double Timer::get_time()
 {
-    const auto time = std::chrono::duration<double>(seconds);
-    const auto nanoseconds = std::chrono::duration<double, std::nano>(time).count();
-
-    OSSleepTicks(OSNanosecondsToTicks(nanoseconds));
+    auto now = Clock::now();
+    auto ns = std::chrono::duration_cast<Nanoseconds>(now - reference).count();
+    return ns / SECONDS_TO_NS;
 }
 
-double LOVETimerStep()
+
+void Timer::sleep(double seconds)
+{
+    auto duration = std::chrono::duration<double>(seconds);
+    std::this_thread::sleep_for(duration);
+}
+
+double Timer::step()
 {
     frames++;
 
     prevTime = currTime;
-    currTime = getLOVETime();
+    currTime = get_time();
 
     deltaTime = currTime - prevTime;
 
     double timeSinceLast = (currTime - prevFpsUpdate);
 
-    if (timeSinceLast > fpsUpdateFrequency)
+    if (timeSinceLast > fpsUpdateFrequencyInSec)
     {
         fps = int((frames / timeSinceLast) + 0.5);
         averageDelta = timeSinceLast / frames;
