@@ -10,8 +10,14 @@
     <Filter Include="include\drc-test">
       <UniqueIdentifier>{7E8C303C-6A85-4F8E-93B7-34137F0F2F9A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\tga">
+      <UniqueIdentifier>{F40CC131-60C2-3927-E9B6-33FE556B302B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\tinyobjloader">
       <UniqueIdentifier>{8EA63973-FA12-F56D-C306-8DCB2F3217D6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\ufbx">
+      <UniqueIdentifier>{2D34E369-1997-720E-C21C-ABC4AE5E3E91}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\window">
       <UniqueIdentifier>{70DC6774-5CAA-5B7A-453E-CCA031AB37DF}</UniqueIdentifier>
@@ -21,6 +27,9 @@
     </Filter>
     <Filter Include="source\drc-test">
       <UniqueIdentifier>{0B1746BF-77A2-B383-80B3-3678ECBD0F84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\ufbx">
+      <UniqueIdentifier>{3A80C7BA-A635-40B0-2F2A-3A879BDE36B4}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\window">
       <UniqueIdentifier>{BD5F8F8F-2920-0BC6-F25A-54435EDA4FA2}</UniqueIdentifier>
@@ -54,11 +63,23 @@
     <ClInclude Include="include\model.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\shader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\texture.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tga\TGATexture.h">
+      <Filter>include\tga</Filter>
+    </ClInclude>
     <ClInclude Include="include\timer.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\tinyobjloader\tiny_obj_loader.h">
       <Filter>include\tinyobjloader</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ufbx\ufbx.h">
+      <Filter>include\ufbx</Filter>
     </ClInclude>
     <ClInclude Include="include\window\test_types.h">
       <Filter>include\window</Filter>
@@ -79,6 +100,9 @@
     </ClCompile>
     <ClCompile Include="source\main.cpp">
       <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ufbx\ufbx.c">
+      <Filter>source\ufbx</Filter>
     </ClCompile>
     <ClCompile Include="source\window\window.cpp">
       <Filter>source\window</Filter>

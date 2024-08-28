@@ -4,7 +4,37 @@
 #include <string>
 
 #include "tinyobjloader/tiny_obj_loader.h"
+#include "ufbx/ufbx.h"
 
+
+void LoadFBX(const std::string& inputfile)
+{
+    ufbx_load_opts opts = { 0 }; // Optional, pass NULL for defaults
+    ufbx_error error; // Optional, pass NULL if you don't care about errors
+    ufbx_scene* scene = ufbx_load_file(inputfile.c_str(), &opts, &error);
+    if (!scene) {
+        VORP_LOG("Failed to load: %s\n", error.description.data);
+        return;
+    }
+
+    // Use and inspect `scene`, it's just plain data!
+
+    // Let's just list all objects within the scene for example:
+    for (size_t i = 0; i < scene->nodes.count; i++) {
+        ufbx_node* node = scene->nodes.data[i];
+        if (node->is_root) continue;
+
+        printf("Object: %s\n", node->name.data);
+        if (node->mesh) {
+            VORP_LOG("-> mesh with %zu faces\n", node->mesh->faces.count);
+        }
+    }
+
+    ufbx_free_scene(scene);
+}
+
+//=========================
+//TINYOBJLOADER
 
 struct Mesh
 {

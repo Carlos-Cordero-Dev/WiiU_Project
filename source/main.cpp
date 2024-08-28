@@ -26,9 +26,9 @@
 #include <memory>
 
 #include <romfs-wiiu.h>
-#include <cafecompiler/CafeGLSLCompiler.h>
+#include <tga/TGATexture.h>
 
-#include "cafecompiler/shader_utils.h"
+#include "shader.h"
 #include "input.h"
 #include "logger.h"
 #include "model.h"
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
    GX2RBuffer positionBuffer = { 0 };
    GX2RBuffer colourBuffer = { 0 };
-   WHBGfxShaderGroup group = { 0 };
+   std::shared_ptr<WHBGfxShaderGroup> group;
    void *buffer = NULL;
    char *gshFileData = NULL;
    char *sdRootPath = NULL;
@@ -95,8 +95,6 @@ int main(int argc, char **argv)
    //   return -1;
    //}
 
-   std::shared_ptr<ObjInfo> cube = LoadObjFromFile("romfs:/models/primitives/cube.obj");
-
    GLSL_Init();
    
    char path_vs[256];
@@ -106,55 +104,15 @@ int main(int argc, char **argv)
    int res = romfsInit();
    VORP_LOG("Romfs res %d", res);
 
-   sprintf(path_vs, "romfs:/test.vs.glsl");
-   sprintf(path_fs, "romfs:/test.fs.glsl");
+   LoadFBX("romfs:/models/primitives/cube2.obj");
+   std::shared_ptr<ObjInfo> cube = LoadObjFromFile("romfs:/models/primitives/cube.obj");
 
-   VORP_LOG("path_vs %s", path_vs);
-   VORP_LOG("path_fs %s", path_fs);
+   group = LoadShader("romfs:/test.vs.glsl", "romfs:/test.fs.glsl");
 
-   std::string path_vs_s(path_vs);
-   std::string path_fs_s(path_fs);
+   WHBGfxInitShaderAttribute(group.get(), "aPosition", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+   WHBGfxInitShaderAttribute(group.get(), "aColor", 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+   WHBGfxInitFetchShader(group.get());
 
-   std::string s_vertexShader = LoadShaderFromFile(path_vs_s);
-   std::string s_fragmentShader = LoadShaderFromFile(path_fs_s);
-
-   VORP_LOG("VS: %s", s_vertexShader.c_str());
-   VORP_LOG("\nFS: %s", s_fragmentShader.c_str());
-
-    //always says cemu idk why
-    //if (WHBLogConsoleInit()) {
-    //    VORP_LOG("I'm on the WiiU");
-    //    WHBLogConsoleFree();
-    //}
-    //else {
-    //    VORP_LOG("I'm on CEMU or another environment");
-    //}
-
-   std::string errorLog(1024, '\0');
-   GX2VertexShader* vertexShader = GLSL_CompileVertexShader(s_vertexShader.c_str(), errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
-   if (!vertexShader) {
-       VORP_LOG("Vertex shader compilation failed for triangle example: %s", errorLog.data());
-       Shutdown(&positionBuffer, &colourBuffer);
-       return -1;
-   }
-   GX2PixelShader* pixelShader = GLSL_CompilePixelShader(s_fragmentShader.c_str(), errorLog.data(), (int)errorLog.size(), GLSL_COMPILER_FLAG_NONE);
-   if (!pixelShader) {
-       VORP_LOG("Pixel shader compilation failed for triangle example: %s", errorLog.data());
-       Shutdown(&positionBuffer, &colourBuffer);
-       return -1;
-   }
-
-   VORP_LOG("Shaders compiled");
-
-   group.vertexShader = vertexShader;
-   group.pixelShader = pixelShader;
-
-   GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, group.vertexShader->program, group.vertexShader->size);
-   GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, group.pixelShader->program, group.pixelShader->size);
-
-   WHBGfxInitShaderAttribute(&group, "aPosition", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-   WHBGfxInitShaderAttribute(&group, "aColor", 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-   WHBGfxInitFetchShader(&group);
 
    //free and = null
    //WHBFreeWholeFile(gshFileData);
@@ -198,6 +156,72 @@ int main(int argc, char **argv)
    memcpy(buffer, sColourData, colourBuffer.elemSize * colourBuffer.elemCount);
    GX2RUnlockBufferEx(&colourBuffer, 0);
 
+   //Texture shader =============================================================================0
+
+   std::shared_ptr<WHBGfxShaderGroup> basicTextureShaderGroup = LoadShader("romfs:/texture.vs.glsl", "romfs:/texture.fs.glsl");
+   WHBGfxInitShaderAttribute(basicTextureShaderGroup.get(), "aPos", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+   WHBGfxInitShaderAttribute(basicTextureShaderGroup.get(), "aTexCoord", 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32);
+   WHBGfxInitFetchShader(basicTextureShaderGroup.get());
+
+   GX2RBuffer s_positionBuffer = {};
+   GX2RBuffer s_texCoordBuffer = {};
+   GX2Texture* s_texture = nullptr;
+   GX2Sampler s_sampler = {};
+
+   const float s_positionData[] =
+   {
+       -1.0f, -1.0f,  0.0f, 1.0f,
+       1.0f,  -1.0f,  0.0f, 1.0f,
+       1.0f, 1.0f,  0.0f, 1.0f,
+       -1.0f, 1.0f,  0.0f, 1.0f,
+   };
+
+   const float s_texCoords[] = {
+       0.0f, 1.0f,
+       1.0f, 1.0f,
+       1.0f, 0.0f,
+       0.0f, 0.0f,
+   };
+
+   // upload vertex position
+   s_positionBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
+   s_positionBuffer.elemSize = 4 * sizeof(float);
+   s_positionBuffer.elemCount = 4;
+   GX2RCreateBuffer(&s_positionBuffer);
+   void* posUploadBuffer = GX2RLockBufferEx(&s_positionBuffer, GX2R_RESOURCE_BIND_NONE);
+   memcpy(posUploadBuffer, s_positionData, s_positionBuffer.elemSize * s_positionBuffer.elemCount);
+   GX2RUnlockBufferEx(&s_positionBuffer, GX2R_RESOURCE_BIND_NONE);
+
+   // upload texture coords
+   s_texCoordBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
+   s_texCoordBuffer.elemSize = 2 * sizeof(float);
+   s_texCoordBuffer.elemCount = 4;
+   GX2RCreateBuffer(&s_texCoordBuffer);
+   void* coordsUploadBuffer = GX2RLockBufferEx(&s_texCoordBuffer, GX2R_RESOURCE_BIND_NONE);
+   memcpy(coordsUploadBuffer, s_texCoords, s_texCoordBuffer.elemSize * s_texCoordBuffer.elemCount);
+   GX2RUnlockBufferEx(&s_texCoordBuffer, GX2R_RESOURCE_BIND_NONE);
+
+   // upload texture
+   std::string texPath = "romfs:/sonic.tga";
+   std::ifstream fs(texPath, std::ios::in | std::ios::binary);
+   if (!fs.is_open())
+   {
+       VORP_LOG("Cant open TGA file");
+       return;
+   }
+   std::vector<uint8_t> data((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
+   s_texture = TGA_LoadTexture((uint8_t*)data.data(), data.size());
+   if (s_texture == nullptr)
+   {
+       VORP_LOG("Texture is null");
+       return;
+   }
+   else VORP_LOG("Texture %s loaded", texPath.c_str());
+
+   GX2Sampler sampler;
+   GX2InitSampler(&sampler, GX2_TEX_CLAMP_MODE_CLAMP, GX2_TEX_XY_FILTER_MODE_LINEAR);
+
+
    VORP_LOG("Begin rendering...");
 
    InitWiiUGamepad();
@@ -218,44 +242,80 @@ int main(int argc, char **argv)
       //PrintGamepadCompleteData();
       //PrintWiiControllerCompleteData(0);
 
-      float *colours = (float *)GX2RLockBufferEx(&colourBuffer, 0);
-      colours[0] = 1.0f;
-      colours[1] = colours[1] >= 1.0f ? 0.0f : (colours[1] + 0.01f);
-      colours[2] = colours[2] >= 1.0f ? 0.0f : (colours[2] + 0.01f);
-      colours[3] = 1.0f;
+      //float *colours = (float *)GX2RLockBufferEx(&colourBuffer, 0);
+      //colours[0] = 1.0f;
+      //colours[1] = colours[1] >= 1.0f ? 0.0f : (colours[1] + 0.01f);
+      //colours[2] = colours[2] >= 1.0f ? 0.0f : (colours[2] + 0.01f);
+      //colours[3] = 1.0f;
 
-      colours[4] = colours[4] >= 1.0f ? 0.0f : (colours[4] + 0.01f);
-      colours[5] = 1.0f;
-      colours[6] = colours[6] >= 1.0f ? 0.0f : (colours[6] + 0.01f);
-      colours[7] = 1.0f;
+      //colours[4] = colours[4] >= 1.0f ? 0.0f : (colours[4] + 0.01f);
+      //colours[5] = 1.0f;
+      //colours[6] = colours[6] >= 1.0f ? 0.0f : (colours[6] + 0.01f);
+      //colours[7] = 1.0f;
 
-      colours[8] = colours[8] >= 1.0f ? 0.0f : (colours[8] + 0.01f);
-      colours[9] = colours[9] >= 1.0f ? 0.0f : (colours[9] + 0.01f);
-      colours[10] = 1.0f;
-      colours[11] = 1.0f;
-      GX2RUnlockBufferEx(&colourBuffer, 0);
+      //colours[8] = colours[8] >= 1.0f ? 0.0f : (colours[8] + 0.01f);
+      //colours[9] = colours[9] >= 1.0f ? 0.0f : (colours[9] + 0.01f);
+      //colours[10] = 1.0f;
+      //colours[11] = 1.0f;
+      //GX2RUnlockBufferEx(&colourBuffer, 0);
 
       // Render!
       WHBGfxBeginRender();
 
       WHBGfxBeginRenderTV();
       WHBGfxClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-      GX2SetFetchShader(&group.fetchShader);
-      GX2SetVertexShader(group.vertexShader);
-      GX2SetPixelShader(group.pixelShader);
-      GX2RSetAttributeBuffer(&positionBuffer, 0, positionBuffer.elemSize, 0);
-      GX2RSetAttributeBuffer(&colourBuffer, 1, colourBuffer.elemSize, 0);
-      GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
+
+      //triangle
+
+      //GX2SetFetchShader(&group->fetchShader);
+      //GX2SetVertexShader(group->vertexShader);
+      //GX2SetPixelShader(group->pixelShader);
+      //GX2RSetAttributeBuffer(&s_positionBuffer, 0, s_positionBuffer.elemSize, 0);
+      //GX2RSetAttributeBuffer(&colourBuffer, 1, colourBuffer.elemSize, 0);
+      //GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
+
+      //Texture
+      
+      GX2SetFetchShader(&basicTextureShaderGroup->fetchShader);
+      GX2SetVertexShader(basicTextureShaderGroup->vertexShader);
+      GX2SetPixelShader(basicTextureShaderGroup->pixelShader);
+      GX2RSetAttributeBuffer(&s_positionBuffer, 0, s_positionBuffer.elemSize, 0);
+      GX2RSetAttributeBuffer(&s_texCoordBuffer, 1, s_texCoordBuffer.elemSize, 0);
+      //GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
+
+      GX2SetPixelTexture(s_texture, basicTextureShaderGroup->pixelShader->samplerVars[0].location);
+      GX2SetPixelSampler(&s_sampler, basicTextureShaderGroup->pixelShader->samplerVars[0].location);
+
+      GX2DrawEx(GX2_PRIMITIVE_MODE_QUADS, 4, 0, 1);
+
       WHBGfxFinishRenderTV();
 
       WHBGfxBeginRenderDRC();
       WHBGfxClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-      GX2SetFetchShader(&group.fetchShader);
-      GX2SetVertexShader(group.vertexShader);
-      GX2SetPixelShader(group.pixelShader);
-      GX2RSetAttributeBuffer(&positionBuffer, 0, positionBuffer.elemSize, 0);
-      GX2RSetAttributeBuffer(&colourBuffer, 1, colourBuffer.elemSize, 0);
-      GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
+
+      //triangle
+
+      //GX2SetFetchShader(&group->fetchShader);
+      //GX2SetVertexShader(group->vertexShader);
+      //GX2SetPixelShader(group->pixelShader);
+      //GX2RSetAttributeBuffer(&positionBuffer, 0, positionBuffer.elemSize, 0);
+      //GX2RSetAttributeBuffer(&colourBuffer, 1, colourBuffer.elemSize, 0);
+      //GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
+
+      //Texture
+
+      GX2SetFetchShader(&basicTextureShaderGroup->fetchShader);
+      GX2SetVertexShader(basicTextureShaderGroup->vertexShader);
+      GX2SetPixelShader(basicTextureShaderGroup->pixelShader);
+      GX2RSetAttributeBuffer(&s_positionBuffer, 0, s_positionBuffer.elemSize, 0);
+      GX2RSetAttributeBuffer(&s_texCoordBuffer, 1, s_texCoordBuffer.elemSize, 0);
+      //GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
+
+      GX2SetPixelTexture(s_texture, basicTextureShaderGroup->pixelShader->samplerVars[0].location);
+      GX2SetPixelSampler(&s_sampler, basicTextureShaderGroup->pixelShader->samplerVars[0].location);
+
+      GX2DrawEx(GX2_PRIMITIVE_MODE_QUADS, 4, 0, 1);
+
       WHBGfxFinishRenderDRC();
 
       WHBGfxFinishRender();
